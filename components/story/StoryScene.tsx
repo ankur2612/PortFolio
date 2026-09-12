@@ -32,78 +32,63 @@ export interface StoryScenePropsData {
  * SCENE → POSE MAPPING.
  *
  * Scenes request a pose by name; they never know how the character is drawn.
- * Placement rules, which hold whether the artwork is final or pending:
+ * Placement rules:
  *
- *   1. Never inside a text column. Every placement sits at x >= 90, past the
+ *   1. Never inside a text column. Every placement sits at x >= 88, past the
  *      right edge of the measure, so it cannot strike through body copy.
- *   2. `opacity` stays low while the stand-in is in place — the geometric
- *      figure is atmospheric structure, not a protagonist. When real artwork
- *      lands these lift to full presence (see FINAL_OPACITY below).
+ *   2. `position.y` is where the FEET land — the character is ground-anchored,
+ *      so a kneeling pose and a standing pose share a floor line.
  *   3. Omitted from scenes that already carry their own subject —
  *      cricket-dusk and india-map would just gain a competing focal point.
+ *   4. Hidden below `lg`, where the copy column occupies the full width.
  */
 interface ScenePlacement extends AnkurCharacterProps {
   pose: AnkurPose;
 }
 
-/**
- * Opacity while the stand-in is showing. Real artwork wants far more
- * presence than abstract geometry does, so this is deliberately separate
- * from the placement — flipping it is a one-line change per scene once the
- * assets exist.
- */
-const STAND_IN_OPACITY = 0.22;
-
 const CHARACTER_BY_VISUAL: Partial<Record<VisualType, ScenePlacement>> = {
-  // B1 — the childhood engineer, opening a broken phone.
+  // B1 — the childhood engineer, opening something with a screwdriver.
+  // This scene already has the exploded phone in its right column, so the
+  // figure sits hard against the edge and stays small: two focal points
+  // competing in the same column is worse than one.
   "workshop-desk": {
     pose: "engineering",
-    position: { x: 94, y: 88 },
-    scale: 13,
-    variant: "silhouette",
-    opacity: STAND_IN_OPACITY,
-    blur: 1,
+    position: { x: 96, y: 99 },
+    scale: 19,
+    opacity: 0.75,
     breathe: true,
   },
   // B3 — hackathons and leading a team under a deadline.
   "pressure-room": {
     pose: "leadership",
-    position: { x: 93, y: 86 },
-    scale: 16,
-    variant: "silhouette",
-    opacity: STAND_IN_OPACITY,
-    blur: 1.5,
+    position: { x: 90, y: 99 },
+    scale: 26,
+    opacity: 0.8,
     breathe: true,
   },
-  // H1 — Ghazipur. Small, further away, looking out.
+  // H1 — Ghazipur. Smaller and further away: this world is quieter.
   "memory-room": {
     pose: "neutral",
-    position: { x: 92, y: 90 },
-    scale: 10,
-    variant: "silhouette",
-    opacity: 0.25,
+    position: { x: 90, y: 94 },
+    scale: 22,
+    opacity: 0.8,
     flip: true,
-    blur: 1,
     breathe: true,
   },
-  // H3 — the press. Holding steady, not defeated.
+  // H3 — the press. Seated, holding steady.
   "pressure-press": {
     pose: "pressure",
-    position: { x: 95, y: 88 },
-    scale: 13,
-    variant: "silhouette",
-    opacity: 0.2,
-    blur: 1.5,
+    position: { x: 89, y: 94 },
+    scale: 24,
+    opacity: 0.8,
     breathe: true,
   },
-  // S2 — the notebook and the microphone.
+  // S2 — the notebook.
   "studio-desk": {
     pose: "writing",
-    position: { x: 94, y: 90 },
-    scale: 14,
-    variant: "silhouette",
-    opacity: 0.2,
-    blur: 1.5,
+    position: { x: 95, y: 99 },
+    scale: 22,
+    opacity: 0.8,
     breathe: true,
   },
 };

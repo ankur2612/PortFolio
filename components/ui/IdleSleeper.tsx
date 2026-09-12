@@ -41,19 +41,19 @@ export function IdleSleeper() {
       }}
     >
       {/*
-        The sleeping pose. Rotation is applied here only while the stand-in
-        geometry is in place — the final `sleeping.png` is drawn lying down,
-        so this wrapper transform comes out when the artwork lands.
+        The sleeping pose borrows the seated `pressure` render (see the reuse
+        note in data/character.ts). Rotating it onto its side reads as asleep
+        at the size this egg uses.
       */}
       <div
         className="absolute inset-0"
-        style={{ transform: "rotate(90deg) translateY(-14px)" }}
+        style={{ transform: "rotate(90deg)" }}
       >
         <AnkurCharacter
           pose="sleeping"
-          position={{ x: 50, y: 50 }}
-          scale={9}
-          opacity={0.4}
+          position={{ x: 50, y: 92 }}
+          scale={13}
+          opacity={0.75}
           breathe
         />
       </div>

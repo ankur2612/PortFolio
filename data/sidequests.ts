@@ -9,7 +9,8 @@ import type { SceneConfig, TravelPlace, QuestCard } from "@/lib/types";
  *     Ankur listed them; none carries an invented anecdote.
  *  2. No copyrighted lyrics, ever. The notebook line is Ankur's own joke
  *     about himself.
- *  3. Anything awaiting verified detail is `placeholder: true` and greppable.
+ *  3. Every entry is traceable to something real — the résumé, or a codebase
+ *     that was read directly.
  */
 
 /* ------------------------------------------------------------------------ */
@@ -112,17 +113,15 @@ export const QUEST_CARDS: QuestCard[] = [
   },
   {
     /*
-     * BWH is named because Ankur named it. Nothing beyond the name and the
-     * fact that he started it is verified, so nothing beyond that is stated.
-     * The card reads as deliberately terse rather than as broken, and it is
-     * excluded from Quick Mode entirely — a recruiter should not meet a
-     * project with no description. See PENDING_WORK in data/portfolio.ts.
+     * Verified against the BWH source on disk: React 19 + Vite 6 + TypeScript
+     * (strict) + Tailwind 3 + React Router 7 + TanStack Query 5 + Zustand 5.
+     * Four pillars and the tagline are read from its own `src/config/site.ts`.
      */
     id: "bwh",
     label: "Started it",
     title: "BWH — Build With Hardware",
-    description: "Another one I started. Write-up pending.",
-    placeholder: true,
+    description:
+      "An engineering ecosystem for learning hardware by shipping real products — Learn, Build, DIY Kits, Community. React 19 and TypeScript, with every screen running against a typed mock service layer built as the backend swap seam.",
   },
   {
     id: "people",

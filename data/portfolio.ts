@@ -54,6 +54,11 @@ export interface PortfolioProject {
   tech: string[];
   href: string | null;
   hrefLabel: string;
+  /**
+   * Set when the project is not a shipped build — e.g. "Design". Rendered as
+   * a badge so a specification is never mistaken for a working product.
+   */
+  stage?: string;
   /** Ordering weight — lower shows first. */
   priority: number;
   /** Hidden from the recruiter view until verified content arrives. */
@@ -70,10 +75,16 @@ const SAFE_ROUTE = PROJECTS.find((project) => project.name === "SafeRoute");
 /**
  * Ordered by what makes the strongest case, not chronology.
  *
- * VoiceFocus and BWH are deliberately absent: neither appears in `resume.ts`
- * and no verified description exists for either. Listing a name with nothing
- * behind it is weaker than not listing it, so they stay out of the recruiter
- * view until real content arrives. See PENDING_WORK below.
+ * BWH and VoiceFocus are included, each described at its ACTUAL stage —
+ * verified by reading what exists on disk, not from memory:
+ *
+ *   BWH        a real React 19 / Vite 6 / TypeScript codebase with its own
+ *              architecture docs. Described as a shipped frontend.
+ *   VoiceFocus two design documents, no code. Described as a design, with
+ *              `stage: "Design"` so it is never mistaken for a built app.
+ *
+ * A project shown at the wrong stage is worse than one left out, so the
+ * distinction is explicit in the data rather than implied by wording.
  */
 export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
   {
@@ -109,6 +120,42 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     priority: 3,
   },
   {
+    // Verified against the codebase: package.json, ARCHITECTURE.md and
+    // src/config/site.ts. Frontend-only by design, with the service layer
+    // written as the single backend-swap seam.
+    id: "bwh",
+    name: "BWH — Build With Hardware",
+    oneLiner:
+      "An engineering ecosystem for learning hardware by building real products — Learn, Build, DIY Kits, Community. Every screen runs against a typed mock service layer designed as the single point where a backend swaps in.",
+    role: "Started it · built it",
+    tech: [
+      "React 19",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+      "React Router",
+      "TanStack Query",
+      "Zustand",
+    ],
+    href: null,
+    hrefLabel: "Private",
+    priority: 4,
+  },
+  {
+    // Design documents only — no implementation exists. `stage` makes that
+    // explicit rather than leaving a recruiter to assume it shipped.
+    id: "voicefocus",
+    name: "VoiceFocus",
+    oneLiner:
+      "A phone turned into a listening companion: detect the separate voices in a room, then isolate or boost the one you actually want to hear. Specified for on-device processing so it works offline and no audio leaves the phone.",
+    role: "Concept & architecture · with two collaborators",
+    stage: "Design",
+    tech: ["Flutter", "Riverpod", "GoRouter", "On-device audio"],
+    href: null,
+    hrefLabel: "Design document",
+    priority: 5,
+  },
+  {
     id: "dyotis",
     name: "Dyotis Technologies",
     oneLiner:
@@ -118,7 +165,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     tech: DYOTIS?.stack ?? [],
     href: null,
     hrefLabel: "Internship",
-    priority: 4,
+    priority: 6,
   },
 ];
 
@@ -283,24 +330,6 @@ export const EXPERIENCE_ENTRIES = EXPERIENCE;
  * code rather than in a chat log.
  */
 export const PENDING_WORK = [
-  {
-    id: "zingro-decisions",
-    what: "Zingro architecture decisions",
-    why: "Highest-value missing content. Powers the DECISIONS layer of the hero exploded view.",
-    need: "Two or three real decisions, two sentences each. Schema shape, provider structure, cart persistence, auth approach.",
-  },
-  {
-    id: "bwh",
-    what: "BWH — Build With Hardware",
-    why: "Named in Side Quests but absent from the résumé. Currently hidden from the recruiter view.",
-    need: "What it is, its scope, and its current status.",
-  },
-  {
-    id: "voicefocus",
-    what: "VoiceFocus",
-    why: "Requested for Quick Mode but absent from all existing data.",
-    need: "What it did, stack, how far it got, why it stopped.",
-  },
   {
     id: "project-links",
     what: "RecoverAI live demo, SafeRoute GitHub",

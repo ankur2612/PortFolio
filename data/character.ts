@@ -6,23 +6,23 @@
  * this file plus a folder of images — nothing else in the project moves.
  *
  * ─────────────────────────────────────────────────────────────────────────
- * CURRENT STATUS: NO ARTWORK EXISTS YET.
+ * ARTWORK: EIGHT REAL POSES, EXTRACTED FROM THE APPROVED 3D RENDER.
  *
- * Every `src` below is null. The final Ankur is a 3D-avatar render (the
- * canonical reference: messy dark curly hair, full dark beard, rectangular
- * gold-framed glasses, olive long-sleeve polo, blue jeans, white sneakers,
- * dark over-ear headphones) and producing it requires an image generator or
- * an illustrator — neither of which is available from inside this codebase.
+ * Source: a single transparent pose sheet supplied by Ankur. Each pose was
+ * cut from it using the sheet's own alpha channel — no colour keying, no
+ * threshold removal, so hair, beard and shirt edges are the original render's.
  *
- * While `src` is null the character system renders its geometric stand-in and
- * says so. It is deliberately NOT dressed up to look like finished art: a
- * convincing fake would be harder to notice and harder to replace.
+ * Normalisation applied to every asset:
+ *   • 1024×1536 canvas, transparent
+ *   • one shared scale factor, derived from the tallest FIGURE (not the
+ *     widest composition) so a pose holding a whiteboard shows the same
+ *     person at the same size as one standing empty-handed
+ *   • lowest contact point on a common baseline, so switching poses never
+ *     makes the character jump vertically
  *
- * TO SHIP THE REAL CHARACTER:
- *   1. Produce the PNGs (see PRODUCTION_NOTES below) at 1024×1536,
- *      transparent, feet on a common baseline.
- *   2. Convert to .webp and drop them in /public/character/.
- *   3. Set `src` on each pose here. Nothing else changes.
+ * Eight of the sixteen pose slots have their own artwork. The rest reuse the
+ * closest real pose — each mapping is stated explicitly on the entry, and no
+ * substitute artwork was generated to fill a gap.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -83,6 +83,12 @@ export type Headphones = "none" | "neck" | "worn";
 export interface PoseAsset {
   /** Public path to the artwork. Null until the asset exists. */
   src: string | null;
+  /**
+   * Set when this pose has no artwork of its own and borrows another's.
+   * Stated explicitly so the reuse is visible in code rather than implied by
+   * two entries happening to share a path.
+   */
+  reusedFrom?: AnkurPose;
   /** Ordered walk-cycle frames. Only the walking poses have these. */
   frames?: string[] | null;
   /**
@@ -115,187 +121,216 @@ export const ASSET_DIR = "/character";
 export const POSES: Record<AnkurPose, PoseAsset> = {
   /* ---------------------------------------------------------------- CORE */
   neutral: {
-    src: null,
+    src: "/character/neutral.webp",
     figureHeight: 0.78,
     baseline: 0.94,
-    headphones: "neck",
+    headphones: "worn",
     prop: "none",
     expression: "calm",
     alt: "Ankur standing, relaxed",
     facing: "left",
   },
   confident: {
-    src: null,
-    figureHeight: 0.78,
+    src: "/character/confident.webp",
+    figureHeight: 0.715,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "none",
     expression: "confident",
     alt: "Ankur standing with his arms crossed",
     facing: "left",
   },
   walking: {
-    src: null,
+    src: "/character/walking.webp",
+    // One walking render exists, not a cycle. `useWalkCycle` returns index 0
+    // for a single frame, so the Finale shows a clean static walking pose —
+    // no fabricated in-between frames from unrelated poses.
     frames: null,
-    figureHeight: 0.78,
+    figureHeight: 0.673,
     baseline: 0.94,
     headphones: "worn",
     prop: "none",
     expression: "calm",
     alt: "Ankur walking",
-    facing: "away",
+    facing: "left",
   },
   walkingBack: {
-    src: null,
-    figureHeight: 0.78,
+    // REUSE — no back-facing render exists. Call sites flip this horizontally
+    // for the same read without inventing artwork.
+    src: "/character/walking.webp",
+    reusedFrom: "walking",
+    figureHeight: 0.673,
     baseline: 0.94,
     headphones: "worn",
     prop: "none",
     expression: "playful",
-    alt: "Ankur walking away, glancing back over his shoulder",
-    facing: "away",
+    alt: "Ankur walking away",
+    facing: "left",
   },
 
   /* ------------------------------------------------------------- BUILDER */
   coding: {
-    src: null,
-    figureHeight: 0.72,
+    // REUSE — no laptop render exists. Writing is the closest real pose:
+    // seated, absorbed, working with something in his hands.
+    src: "/character/writing.webp",
+    reusedFrom: "writing",
+    figureHeight: 0.576,
     baseline: 0.94,
     headphones: "worn",
-    prop: "laptop",
+    prop: "notebook",
     expression: "focused",
-    alt: "Ankur at a laptop, working",
+    alt: "Ankur seated, absorbed in work",
     facing: "left",
   },
   engineering: {
-    src: null,
-    figureHeight: 0.78,
+    src: "/character/engineering.webp",
+    figureHeight: 0.578,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "tool",
     expression: "focused",
-    alt: "Ankur opening a small electronic device with a screwdriver",
+    alt: "Ankur kneeling with a screwdriver and a circuit board",
     facing: "left",
   },
   debugging: {
-    src: null,
-    figureHeight: 0.72,
+    // REUSE — no frustrated-at-a-screen render exists. Pressure carries the
+    // same read: head in hands, something is not working.
+    src: "/character/pressure.webp",
+    reusedFrom: "pressure",
+    figureHeight: 0.583,
     baseline: 0.94,
-    headphones: "neck",
-    prop: "laptop",
+    headphones: "worn",
+    prop: "none",
     expression: "frustrated",
-    alt: "Ankur leaning into a laptop, one hand on his forehead",
+    alt: "Ankur seated, head in his hands",
     facing: "left",
   },
   leadership: {
-    src: null,
-    figureHeight: 0.78,
+    src: "/character/leadership.webp",
+    figureHeight: 0.71,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "none",
     expression: "confident",
-    alt: "Ankur gesturing toward a team, explaining something",
+    alt: "Ankur presenting at a board, explaining a plan",
     facing: "right",
   },
   victory: {
-    src: null,
-    figureHeight: 0.78,
+    // REUSE — no celebration render exists. Confident is the nearest real
+    // pose with the right register: pleased, self-assured, not theatrical.
+    src: "/character/confident.webp",
+    reusedFrom: "confident",
+    figureHeight: 0.715,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "none",
     expression: "victorious",
-    alt: "Ankur with one fist raised in a small celebration",
+    alt: "Ankur standing, pleased with himself",
     facing: "left",
   },
 
   /* --------------------------------------------------------------- HUMAN */
   thinking: {
-    src: null,
-    figureHeight: 0.78,
+    src: "/character/thinking.webp",
+    figureHeight: 0.691,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "none",
     expression: "thoughtful",
     alt: "Ankur with a hand near his chin, thinking",
     facing: "left",
   },
   pressure: {
-    src: null,
-    figureHeight: 0.74,
+    src: "/character/pressure.webp",
+    figureHeight: 0.583,
     baseline: 0.94,
-    headphones: "none",
+    headphones: "worn",
     prop: "none",
     expression: "pressured",
-    alt: "Ankur leaning forward, holding steady under pressure",
+    alt: "Ankur seated, holding steady under pressure",
     facing: "left",
   },
 
-    /* ---------------------------------------------------------- PLAYGROUND */
+  /* ---------------------------------------------------------- PLAYGROUND */
   travelling: {
-    src: null,
-    figureHeight: 0.78,
+    // REUSE — no backpack render exists. Walking reads as movement and is
+    // the closest honest substitute.
+    src: "/character/walking.webp",
+    reusedFrom: "walking",
+    figureHeight: 0.673,
     baseline: 0.94,
-    headphones: "neck",
-    prop: "backpack",
+    headphones: "worn",
+    prop: "none",
     expression: "adventurous",
-    alt: "Ankur with a backpack over one shoulder, looking into the distance",
-    facing: "right",
+    alt: "Ankur walking, on his way somewhere",
+    facing: "left",
   },
   exploring: {
-    src: null,
-    figureHeight: 0.78,
+    // REUSE — no looking-around render exists. Thinking carries curiosity in
+    // the head tilt, which is the same register.
+    src: "/character/thinking.webp",
+    reusedFrom: "thinking",
+    figureHeight: 0.691,
     baseline: 0.94,
-    headphones: "none",
-    prop: "phone",
+    headphones: "worn",
+    prop: "none",
     expression: "curious",
     alt: "Ankur looking around, curious",
-    facing: "right",
+    facing: "left",
   },
   writing: {
-    src: null,
-    figureHeight: 0.7,
+    src: "/character/writing.webp",
+    figureHeight: 0.576,
     baseline: 0.94,
     headphones: "worn",
     prop: "notebook",
     expression: "focused",
-    alt: "Ankur writing in a notebook",
+    alt: "Ankur cross-legged, writing in a notebook",
     facing: "left",
   },
   rap: {
-    src: null,
-    figureHeight: 0.78,
+    // REUSE — no microphone render exists. Confident is the nearest pose
+    // that reads as performing rather than working.
+    src: "/character/confident.webp",
+    reusedFrom: "confident",
+    figureHeight: 0.715,
     baseline: 0.94,
     headphones: "worn",
-    prop: "microphone",
+    prop: "none",
     expression: "playful",
-    alt: "Ankur performing into a microphone",
+    alt: "Ankur standing, headphones on",
     facing: "left",
   },
 
   /* ---------------------------------------------------------- EASTER EGG */
   sleeping: {
-    src: null,
-    figureHeight: 0.42,
+    // REUSE — no sleeping render exists. Pressure is the only seated,
+    // head-down pose available; IdleSleeper rotates it onto its side, which
+    // reads as asleep at the small scale the egg uses.
+    src: "/character/pressure.webp",
+    reusedFrom: "pressure",
+    figureHeight: 0.583,
     baseline: 0.94,
-    headphones: "neck",
+    headphones: "worn",
     prop: "none",
     expression: "sleeping",
-    alt: "Ankur fast asleep in an improbable position",
+    alt: "Ankur fast asleep",
     facing: "left",
   },
 };
 
-/** True once every pose has artwork. Drives the stand-in notice. */
-export const ARTWORK_READY: boolean = Object.values(POSES).every(
-  (pose) => pose.src !== null,
-);
+/** Poses drawn specifically for themselves, rather than borrowing another. */
+export const ORIGINAL_POSES: AnkurPose[] = (
+  Object.keys(POSES) as AnkurPose[]
+).filter((pose) => POSES[pose].src !== null && !POSES[pose].reusedFrom);
 
-/** Poses still missing artwork — surfaced in dev so gaps stay visible. */
-export function missingArtwork(): AnkurPose[] {
-  return (Object.keys(POSES) as AnkurPose[]).filter(
-    (pose) => POSES[pose].src === null,
+/** Pose → the pose it borrows artwork from. */
+export const POSE_REUSE: Partial<Record<AnkurPose, AnkurPose>> =
+  Object.fromEntries(
+    (Object.keys(POSES) as AnkurPose[])
+      .filter((pose) => POSES[pose].reusedFrom)
+      .map((pose) => [pose, POSES[pose].reusedFrom]),
   );
-}
 
 /* ------------------------------------------------------------------------ */
 /* Production notes                                                          */

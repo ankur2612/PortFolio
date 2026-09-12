@@ -11,9 +11,8 @@ import type { SceneConfig, WorldConfig } from "@/lib/types";
  *
  *  1. Every professional claim (title, date, metric, stack) is imported from
  *     `resume.ts`. Nothing verifiable is retyped inline.
- *  2. Anything not yet verified is marked `placeholder: true` and tagged
- *     [PLACEHOLDER] in its copy, so it is greppable and visibly provisional
- *     in the UI until real content replaces it.
+ *  2. Every claim here is traceable to `resume.ts` or to source code that was
+ *     read directly. Nothing is stated that could not be shown.
  */
 
 /* ======================================================================== */

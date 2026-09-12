@@ -215,11 +215,10 @@ export function WorldIntro({
             not know or care how the character is drawn. */}
         <AnkurCharacter
           pose={accent === "human" ? "thinking" : "confident"}
-          position={{ x: 86, y: 82 }}
-          scale={18}
-          variant="silhouette"
-          opacity={0.22}
-          blur={2}
+          position={{ x: 86, y: 96 }}
+          scale={30}
+          opacity={0.35}
+          blur={1}
         />
       </div>
 

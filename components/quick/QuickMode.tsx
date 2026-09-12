@@ -102,13 +102,12 @@ export function QuickMode({ onExit, onEnterStory }: QuickModeProps) {
               like the same portfolio rather than a detached résumé page.
               `overflow-hidden` keeps it inside its own box regardless of the
               vh-based scale, so it can never crop against the header. */}
-          <div className="relative hidden h-[132px] w-[96px] shrink-0 overflow-hidden sm:block">
+          <div className="relative hidden h-[150px] w-[110px] shrink-0 sm:block">
             <AnkurCharacter
               pose="confident"
-              position={{ x: 50, y: 96 }}
-              scale={12}
-              opacity={0.22}
-              blur={0.5}
+              position={{ x: 50, y: 98 }}
+              scale={13}
+              opacity={0.92}
               interactive
             />
           </div>
@@ -140,7 +139,22 @@ export function QuickMode({ onExit, onEnterStory }: QuickModeProps) {
               className="u-card flex flex-col gap-s3 px-s4 py-s4"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-s2">
-                <h3 className="u-display text-h3 text-fg">{project.name}</h3>
+                <span className="flex flex-wrap items-baseline gap-s2">
+                  <h3 className="u-display text-h3 text-fg">{project.name}</h3>
+                  {/* A specification must never be mistaken for a shipped
+                      product, so the stage is stated beside the name. */}
+                  {project.stage ? (
+                    <span
+                      className="u-mono rounded-sm border px-s2 py-s1"
+                      style={{
+                        color: "var(--color-fg-mute)",
+                        borderColor: "var(--color-line-hi)",
+                      }}
+                    >
+                      {project.stage}
+                    </span>
+                  ) : null}
+                </span>
                 <span className="u-mono text-fg-mute">
                   {project.role}
                   {project.period ? ` · ${project.period}` : ""}

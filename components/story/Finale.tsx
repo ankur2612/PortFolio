@@ -166,19 +166,18 @@ export function Finale({ onRestart }: FinaleProps) {
         </ul>
 
         {/* Walking toward the horizon. */}
-        {/* Placeholder geometry, held back until the real asset exists: at
-            full opacity it announces itself as the protagonist, which it is
-            not yet. Kept small and faint so the ending rests on the type. */}
+        {/* The protagonist, walking out of his own story. Small in frame so
+            the ending rests on the type — a figure that fills the composition
+            reads as a mascot, not as cinema. */}
         <div
           data-finale="walker"
-          className="relative mb-s4 h-[12vh] w-full max-w-[120px] overflow-hidden"
+          className="relative mb-s4 h-[24vh] w-full max-w-[200px]"
         >
           <AnkurCharacter
             pose="walking"
-            position={{ x: 42, y: 92 }}
-            scale={11}
-            opacity={0.3}
-            blur={0.5}
+            position={{ x: 40, y: 98 }}
+            scale={22}
+            opacity={0.95}
             // The one pose that must never pop in late.
             priority
             interactive
