@@ -1,69 +1,215 @@
-import Image from "next/image";
+"use client";
 
+import { useCallback, useEffect, useState } from "react";
+
+import Landing from "@/components/Landing";
+import QuickMode from "@/components/quick/QuickMode";
+import Finale from "@/components/story/Finale";
+import ProgressNavigation from "@/components/story/ProgressNavigation";
+import StoryWorld, { WorldOutro } from "@/components/story/StoryWorld";
+import WorldIntro from "@/components/story/WorldIntro";
+import EasterEggToast from "@/components/ui/EasterEggToast";
+import HiringSignal from "@/components/ui/HiringSignal";
+import IdleSleeper from "@/components/ui/IdleSleeper";
+import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
+import { useStoryState } from "@/hooks/useStoryState";
+import type { WorldId } from "@/lib/types";
+
+/**
+ * The single-page application shell.
+ *
+ * Experience flow:
+ *   Landing → Story (Builder → Human → Side Quests → Finale)
+ *   Landing → Quick Mode
+ *   Q from anywhere → Quick Mode.  Esc → back.
+ *
+ * Story Mode and Quick Mode remain states of this page, not routes.
+ *
+ * There is no audio anywhere in this project. Choosing Story Mode opens
+ * directly into the first world — the experience is designed to work in
+ * silence, and nothing is gated behind a sound preference.
+ */
 export default function Home() {
+  const story = useStoryState();
+
+  const [introDone, setIntroDone] = useState(false);
+  const [atFinale, setAtFinale] = useState(false);
+
+  const {
+    mode,
+    world,
+    worldConfig,
+    worldName,
+    sceneOrder,
+    sceneCount,
+    nextWorld,
+    enterStory,
+    enterQuick,
+    returnToLanding,
+    setWorld,
+    goToNextWorld,
+    setSceneOrder,
+  } = story;
+
+  /* ---------------- Entry ---------------- */
+
+  const handleEnterStory = useCallback(() => {
+    setIntroDone(false);
+    setAtFinale(false);
+    enterStory();
+  }, [enterStory]);
+
+  /* ---------------- Navigation ---------------- */
+
+  const handleBack = useCallback(() => {
+    setIntroDone(false);
+    setAtFinale(false);
+    returnToLanding();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [returnToLanding]);
+
+  const handleQuickMode = useCallback(() => {
+    enterQuick();
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [enterQuick]);
+
+  // Every world change replays its entry transition, so moving between worlds
+  // reads as a cut in a film rather than a page jump.
+  const handleSelectWorld = useCallback(
+    (next: WorldId) => {
+      if (next === world && !atFinale) return;
+      setAtFinale(false);
+      setIntroDone(false);
+      setWorld(next);
+    },
+    [world, atFinale, setWorld],
+  );
+
+  const handleNextWorld = useCallback(() => {
+    if (nextWorld) {
+      setIntroDone(false);
+      goToNextWorld();
+    } else {
+      // End of the last world: the finale replaces it in place.
+      setAtFinale(true);
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [nextWorld, goToNextWorld]);
+
+  const handleEscape = useCallback(() => {
+    if (mode === "quick" || mode === "story") handleBack();
+  }, [mode, handleBack]);
+
+  useGlobalShortcuts({
+    onQuickMode: handleQuickMode,
+    onEscape: handleEscape,
+  });
+
+  // Entering a world always starts at the top, never mid-scroll.
+  useEffect(() => {
+    if (mode === "story") window.scrollTo({ top: 0, behavior: "auto" });
+  }, [mode, world]);
+
+  /* ---------------- Global overlays ---------------- */
+
+  const overlays = (
+    <>
+      <EasterEggToast />
+      <IdleSleeper />
+    </>
+  );
+
+  /* ---------------- Landing ---------------- */
+  if (mode === "landing") {
+    return (
+      <div id="main-content">
+        <Landing onStoryMode={handleEnterStory} onQuickMode={handleQuickMode} />
+        {overlays}
+      </div>
+    );
+  }
+
+  /* ---------------- Quick Mode ---------------- */
+  if (mode === "quick") {
+    return (
+      <div id="main-content" className="relative">
+        <QuickMode onExit={handleBack} onEnterStory={handleEnterStory} />
+
+        <button
+          type="button"
+          onClick={handleBack}
+          title="Back to the landing (Esc)"
+          className="fixed left-s3 top-s3 z-[64] inline-flex min-h-[40px] items-center gap-s2 rounded-md border border-line px-s3 py-s2 u-no-print"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--color-raised) 86%, transparent)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+          }}
+        >
+          <span className="u-mono text-fg-mute">← Back</span>
+          <span aria-hidden="true" className="u-mono text-fg-mute">
+            Esc
+          </span>
+        </button>
+
+        {overlays}
+      </div>
+    );
+  }
+
+  /* ---------------- Story Mode ---------------- */
+  const outroLabel = nextWorld
+    ? `${worldConfig.eyebrow.split(" / ")[0]} complete · ${nextWorld.eyebrow} comes next`
+    : "Three worlds down · one thing left";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div id="main-content">
+      {!introDone && !atFinale ? (
+        <WorldIntro
+          key={`intro-${world}`}
+          eyebrow={worldConfig.eyebrow}
+          title={worldConfig.scenes[0]?.title ?? worldConfig.name}
+          accent={worldConfig.accent}
+          onComplete={() => setIntroDone(true)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+      ) : null}
+
+      {atFinale ? (
+        <div data-world="sidequest">
+          <Finale onRestart={handleBack} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+      ) : (
+        <StoryWorld
+          key={`world-${world}`}
+          world={worldConfig}
+          onSceneChange={setSceneOrder}
+          footer={
+            <WorldOutro
+              label={outroLabel}
+              actionLabel={
+                nextWorld ? `Enter ${nextWorld.name}` : "See how it ends"
+              }
+              onAction={handleNextWorld}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          }
+        />
+      )}
+
+      <HiringSignal onOpen={handleQuickMode} />
+
+      {!atFinale ? (
+        <ProgressNavigation
+          world={world}
+          worldName={worldName}
+          sceneOrder={sceneOrder}
+          sceneCount={sceneCount}
+          onSelectWorld={handleSelectWorld}
+          onBack={handleBack}
+        />
+      ) : null}
+
+      {overlays}
     </div>
   );
 }

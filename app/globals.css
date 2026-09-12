@@ -1,26 +1,434 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   ANKUR PATHAK — TAKE IT APART
+   Design system: ENGINEERED WARMTH
+   Technical precision rendered with human warmth.
+   ========================================================================== */
+
+@theme {
+  /* --- FOUNDATION: identical across all worlds ------------------------- */
+  --color-void: #08090a;
+  --color-raised: #121417;
+  --color-raised-2: #171a1e;
+  --color-line: #1e2126;
+  --color-line-hi: #2a2e35;
+
+  /* --- TEXT ------------------------------------------------------------ */
+  --color-fg: #f2f0ed;
+  --color-fg-dim: #9aa0a8;
+  --color-fg-mute: #6b727a;
+
+  /* --- WORLD ACCENTS --------------------------------------------------- */
+  /*
+   * WORLD ACCENTS.
+   *
+   * Builder and Human previously sat 15 units apart in RGB — under ~60 two
+   * colours read as the same hue, so the two worlds felt like one place with
+   * different words. Human is now a deep terracotta: still unmistakably warm
+   * and nostalgic, but a different material entirely — earth rather than
+   * lamplight. Measured distance from Builder is ~120.
+   */
+  --color-builder: #f59e42;
+  --color-builder-2: #ffb866;
+  --color-human: #be5038;
+  --color-human-2: #8c3a2c;
+  /*
+   * Human's small-text tint. Terracotta is the world's material colour, but
+   * at 4.42:1 it sits just under the threshold for 12px mono annotations.
+   * A warm sand reading of the same family clears 4.5:1 comfortably while
+   * staying unmistakably Human rather than Builder.
+   */
+  --color-human-text: #e9a288;
+  --color-sidequest: #a78bfa;
+  --color-sidequest-2: #22d3ee;
+
+  /* --- FONT FAMILIES --------------------------------------------------- */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* --- SPACING: 4px base, 8 steps only --------------------------------- */
+  --spacing-s1: 4px;
+  --spacing-s2: 8px;
+  --spacing-s3: 16px;
+  --spacing-s4: 24px;
+  --spacing-s5: 40px;
+  --spacing-s6: 64px;
+  --spacing-s7: 96px;
+  --spacing-s8: 160px;
+
+  /* --- RADIUS: sharp = engineering instrument -------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  /* --- TYPE SCALE ------------------------------------------------------ */
+  --text-display: clamp(2.25rem, 6.5vw, 5.5rem);
+  --text-display--line-height: 0.94;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-h2: clamp(1.5rem, 3vw, 2.25rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.02em;
+
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.3;
+
+  --text-body: clamp(1.0625rem, 1.2vw, 1.1875rem);
+  --text-body--line-height: 1.65;
+  --text-body--letter-spacing: -0.011em;
+
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.6;
+
+  --text-mono: 0.75rem;
+  --text-mono--line-height: 1.4;
+  --text-mono--letter-spacing: 0.14em;
+}
+
+/* ==========================================================================
+   RUNTIME TOKENS
+   --acc / --acc-2 are swapped by [data-world]; every component reads them.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --acc: var(--color-builder);
+  --acc-2: var(--color-builder-2);
+  /*
+   * Accent for SMALL TEXT. Identical to --acc for every world whose accent
+   * already clears 4.5:1 on the void; Human overrides it because terracotta
+   * is a material colour, not a legible-at-12px colour. Components that
+   * colour mono annotations use this; components colouring large display
+   * type or non-text marks use --acc.
+   */
+  --acc-text: var(--acc);
+
+  /* Derived accent alphas — always use these, never hand-written rgba. */
+  --acc-glow: color-mix(in srgb, var(--acc) 22%, transparent);
+  --acc-line: color-mix(in srgb, var(--acc) 40%, transparent);
+  --acc-wash: color-mix(in srgb, var(--acc) 8%, transparent);
+  --acc-faint: color-mix(in srgb, var(--acc) 14%, transparent);
+
+  /* Shadows: on near-black, use light — not shadow. */
+  --glow-sm: 0 0 24px -4px var(--acc-glow);
+  --glow-md: 0 0 60px -10px var(--acc-glow);
+  --glow-lg: 0 0 140px -20px var(--acc-glow);
+  --inset-hairline: inset 0 1px 0 0 rgb(255 255 255 / 0.03);
+
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+[data-world="builder"] {
+  --acc: var(--color-builder);
+  --acc-2: var(--color-builder-2);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-world="human"] {
+  --acc: var(--color-human);
+  --acc-2: var(--color-human-2);
+}
+
+[data-world="sidequest"] {
+  --acc: var(--color-sidequest);
+  --acc-2: var(--color-sidequest-2);
+}
+
+/*
+ * Derived accents must be recomputed wherever --acc is redefined, otherwise
+ * they stay bound to the value they were resolved against on :root. This
+ * rule re-derives them for every world scope AND for any element carrying a
+ * per-scene inline --acc (Side Quests shifts colour scene to scene).
+ */
+[data-world],
+[data-scene] {
+  /* Default the text accent to this scope's own --acc. */
+  --acc-text: var(--acc);
+  --acc-glow: color-mix(in srgb, var(--acc) 22%, transparent);
+  --acc-line: color-mix(in srgb, var(--acc) 40%, transparent);
+  --acc-wash: color-mix(in srgb, var(--acc) 8%, transparent);
+  --acc-faint: color-mix(in srgb, var(--acc) 14%, transparent);
+  --glow-sm: 0 0 24px -4px var(--acc-glow);
+  --glow-md: 0 0 60px -10px var(--acc-glow);
+  --glow-lg: 0 0 140px -20px var(--acc-glow);
+}
+
+/*
+ * Human's small-text override MUST follow the block above: both selectors
+ * have the same specificity (0-1-0), so source order decides the winner.
+ */
+[data-world="human"] {
+  --acc-text: var(--color-human-text);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+* {
+  min-width: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-void);
+  color: var(--color-fg);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.65;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+/* Kill the horizontal-overflow class of bugs at the root. */
+html,
+body {
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background-color: var(--acc);
+  color: var(--color-void);
+}
+
+::-moz-selection {
+  background-color: var(--acc);
+  color: var(--color-void);
+}
+
+/* ==========================================================================
+   FOCUS — visible, on-brand, never removed
+   ========================================================================== */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   SCROLLBAR
+   ========================================================================== */
+
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--color-void);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-line-hi);
+    border: 2px solid var(--color-void);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--acc-line);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background-color: var(--color-void);
+  }
+}
+
+html {
+  scrollbar-color: var(--color-line-hi) var(--color-void);
+  scrollbar-width: thin;
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+/* Mono annotation voice — the technical-drawing register. */
+.u-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Display voice. */
+.u-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.94;
+  text-transform: uppercase;
+}
+
+/* Card surface: sharp corners, hairline border, light instead of shadow. */
+.u-card {
+  background-color: var(--color-raised);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--inset-hairline);
+}
+
+/* Body copy measure. */
+.u-measure {
+  max-width: 68ch;
+}
+
+/* Blueprint grid plate — used as scene/landing backdrop. */
+.u-grid-plate {
+  background-image: linear-gradient(
+      to right,
+      var(--color-line) 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Screen-reader-only, focusable variant for skip links. */
+.u-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.u-sr-only:focus-visible {
+  position: fixed;
+  top: var(--spacing-s3);
+  left: var(--spacing-s3);
+  z-index: 100;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: var(--spacing-s2) var(--spacing-s3);
+  clip-path: none;
+  background-color: var(--color-raised);
+  border: 1px solid var(--acc);
+  border-radius: var(--radius-md);
+  color: var(--color-fg);
+}
+
+/* Text reveal primitive — GSAP animates clip-path from this start state. */
+.u-reveal-target {
+  clip-path: inset(0 100% 0 0);
+}
+
+/* Hairline rule that fades out to the right — the "dimension line" motif. */
+.u-rule {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    var(--acc),
+    var(--acc-faint) 45%,
+    transparent
+  );
+}
+
+/* ==========================================================================
+   KEYFRAMES
+   The only continuously running animations in the project. Both are
+   transform/opacity-only and both stop under reduced motion.
+   ========================================================================== */
+
+@keyframes ap-breathe {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.008);
+  }
+}
+
+@keyframes ap-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ap-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   Belt and braces: JS honours the pref too, this catches everything else.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .u-reveal-target {
+    clip-path: none !important;
+  }
+}
+
+/* ==========================================================================
+   PRINT — Quick Mode must print cleanly
+   ========================================================================== */
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .u-no-print {
+    display: none !important;
+  }
 }
